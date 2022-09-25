@@ -12,31 +12,39 @@ function Feed({ personal }) {
   // postsに全ツイートを入れる
   const [posts, setPosts] = useState([]);
   // 本人のツイートと本人以外のツイートを判別して配列に入れる
-  const getUpdatedTweets = (allTweets, address) => {
+  const getUpdatedTweets = (allTweets, address, sortFlg = 0) => {
     let updatedTweets = [];
-    
-    for (let i = 0; i < allTweets.length; i++) {
-      if (allTweets[i].username.toLowerCase() == address.toLowerCase()) {
+    let allTweetsTmp = [];
+    if(sortFlg == 1){
+      allTweetsTmp = allTweets;
+    }else{
+      allTweetsTmp = allTweets.slice().sort((a,b) =>
+        new Date(b.timestamp * 1000) - new Date(a.timestamp * 1000)
+      );
+    }
+
+    for (let i = 0; i < allTweetsTmp.length; i++) {
+      if (allTweetsTmp[i].username.toLowerCase() == address.toLowerCase()) {
         let tweet = {
-          'id': allTweets[i].id,
-          'tweetText': allTweets[i].tweetText,
-          'isDeleted': allTweets[i].isDeleted,
-          'username': allTweets[i].username,
-          'createTime':new Date(allTweets[i].timestamp * 1000).toString(),
-          // 'createTime':new Date(allTweets[i].timestamp * 1000),
-          'good': allTweets[i].good,
+          'id': allTweetsTmp[i].id,
+          'tweetText': allTweetsTmp[i].tweetText,
+          'isDeleted': allTweetsTmp[i].isDeleted,
+          'username': allTweetsTmp[i].username,
+          'createTime':new Date(allTweetsTmp[i].timestamp * 1000).toString(),
+          // 'createTime':new Date(allTweetsTmp[i].timestamp * 1000),
+          'good': allTweetsTmp[i].good,
           'personal': true
         };
         updatedTweets.push(tweet);
       } else {
         let tweet = {
-          'id': allTweets[i].id,
-          'tweetText': allTweets[i].tweetText,
-          'isDeleted': allTweets[i].isDeleted,
-          'username': allTweets[i].username,
-          'createTime':new Date(allTweets[i].timestamp * 1000).toString(),
-          // 'createTime':new Date(allTweets[i].timestamp * 1000),
-          'good': allTweets[i].good,
+          'id': allTweetsTmp[i].id,
+          'tweetText': allTweetsTmp[i].tweetText,
+          'isDeleted': allTweetsTmp[i].isDeleted,
+          'username': allTweetsTmp[i].username,
+          'createTime':new Date(allTweetsTmp[i].timestamp * 1000).toString(),
+          // 'createTime':new Date(allTweetsTmp[i].timestamp * 1000),
+          'good': allTweetsTmp[i].good,
           'personal': false
         };
         updatedTweets.push(tweet);
@@ -129,10 +137,9 @@ function Feed({ personal }) {
     }
   }
 
-  // ツイート作成時間を最新順で並び替える
+  // ツイート作成時間を昇順で並び替える
   const sortTime = async () => {
     try{
-      // alert("aaa");
       const { ethereum } = window;
       if (ethereum) {
         const provider = new ethers.providers.Web3Provider(ethereum);
@@ -144,13 +151,10 @@ function Feed({ personal }) {
         );
 
         let allTweets = await TwitterContract.getAllTweets();
-        const objCopy = {...allTweets};
-        console.log(objCopy)
         let result = allTweets.slice().sort((a,b) =>
-          new Date(b.timestamp * 1000) - new Date(a.timestamp * 1000)
+          new Date(a.timestamp * 1000) - new Date(b.timestamp * 1000)
         );
-        console.log(result);
-        setPosts(getUpdatedTweets(result, ethereum.selectedAddress));
+        setPosts(getUpdatedTweets(result, ethereum.selectedAddress,1));
         
       } else {
         console.log("Ethereum object doesn't exist");
@@ -164,7 +168,6 @@ function Feed({ personal }) {
   // いいねの数が多い順にツイートを並び替える
   const sortGood = async () => {
     try{
-      // alert("aaa");
       const { ethereum } = window;
       if (ethereum) {
         const provider = new ethers.providers.Web3Provider(ethereum);
@@ -176,13 +179,10 @@ function Feed({ personal }) {
         );
 
         let allTweets = await TwitterContract.getAllTweets();
-        const objCopy = {...allTweets};
-        console.log(objCopy)
         let result = allTweets.slice().sort((a,b) =>
           b.good - a.good
         );
-        console.log(result);
-        setPosts(getUpdatedTweets(result, ethereum.selectedAddress));
+        setPosts(getUpdatedTweets(result, ethereum.selectedAddress,1));
         
       } else {
         console.log("Ethereum object doesn't exist");
@@ -213,7 +213,6 @@ function Feed({ personal }) {
   
           let allTweets = await TwitterContract.getAllTweets();
           setPosts(getUpdatedTweets(allTweets, ethereum.selectedAddress));
-          // alert("add new tweet");
         } else {
           console.log("Ethereum object doesn't exist");
         }
@@ -241,7 +240,6 @@ function Feed({ personal }) {
   
           let allTweets = await TwitterContract.getAllTweets();
           setPosts(getUpdatedTweets(allTweets, ethereum.selectedAddress));
-          // alert("add new tweet");
         } else {
           console.log("Ethereum object doesn't exist");
         }
@@ -269,7 +267,6 @@ function Feed({ personal }) {
   
           let allTweets = await TwitterContract.getAllTweets();
           setPosts(getUpdatedTweets(allTweets, ethereum.selectedAddress));
-          // alert("add new tweet");
         } else {
           console.log("Ethereum object doesn't exist");
         }
@@ -304,7 +301,7 @@ function Feed({ personal }) {
     <div className="feed">
       <div className="feed__header">
         <h2>Social network</h2>
-        <button className="tweetBox__tweetButton" onClick={sortTime}>sort time desc</button>
+        <button className="tweetBox__tweetButton" onClick={sortTime}>sort time asc</button>
         <button className="tweetBox__tweetButton" onClick={sortGood}>sort good desc</button>
       </div>
 
